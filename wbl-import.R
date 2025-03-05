@@ -101,4 +101,4 @@ df_wbl <- df_parental_leave_clean |>
 
 # Saving the cleaned data ----------------------------------------------------------
 
-saveRDS(df_wbl, "parental_leave.rds")
+write_rds(df_wbl, "data/parental_leave.rds")
