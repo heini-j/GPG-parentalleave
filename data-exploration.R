@@ -70,9 +70,10 @@ df_parentalleave_common |>
 
 # cut-off at 2015
 
-df_parentalleave_common |>
-  filter(year == 2015 & paternityleave_length >= 14)|>
-  summarise(n())
+country_list <- df_parentalleave_common |>
+  filter(year == 2015 & paternityleave_length >= 14)
+
+country_list |> summarise(n())
 
 # 16 countries -> only a difference of 1 so this could be a better cut-off point to allow for data points after
 
