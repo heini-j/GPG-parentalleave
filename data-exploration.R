@@ -1,5 +1,6 @@
 library(dplyr)
 library(readr)
+library(tidyr)
 
 
 # Load the data
@@ -78,6 +79,35 @@ country_list |> summarise(n())
 # 16 countries -> only a difference of 1 so this could be a better cut-off point to allow for data points after
 
 
+# Combining the dataframes --------------------------------------------------
 
+# How many zeroes in the gwg column?
 
+df_gwg_common |>
+  filter(gwg == 0) |>
+  count()
+
+# 34 zeroes, 39 NAs
+
+# turning the gwg dataframe to the wide format
+
+gwg_wide <- df_gwg_common |>
+  pivot_wider(names_from = gwg_type, values_from = gwg)
+
+# how many zeroes in the new columns
+
+gwg_wide |>
+  filter(D9 == 0) |>
+  count()
+ 
+# MEDIAN: 4 NAs , 0 zeroes
+# D1 43 NAs, 26 zeroes
+# D9 28 NAs, 8 zeroes
+
+# merging the dataframes
+
+df_combined <- df_parentalleave_common |>
+  left_join(gwg_wide, by = c("country", "year", "country_code"))
+
+View(df_combined)
 
