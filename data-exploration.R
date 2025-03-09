@@ -112,7 +112,36 @@ ggsave("plots/selected.png", selection_countries, width = 20, height = 20)
 # leave length was less than 14 d in 2020 in Argentina, Brazil, Chile, Colombia, Czechia, France (decrease from 15), Greece,
 # HUngary, Italy, Latvia, Malta, Maxico, Netherlands & Türkiye
 
-# Cut-off at 5 years prior and after 
+# creating 4 groups of countries based on the changes in paternity leave length
+
+df_parentalleave_common <- df_parentalleave_common |>
+  mutate(paternityleave_group = case_when(
+    country %in% c("Australia", "Bulgaria", "Cyprus", "Ireland", "Lithuania", "Poland", "Luxembourg") ~ "Increase from 0",
+    country %in% c("Belgium", "Denmark", "Estonia", "Iceland", "Romania", "Sweden", "United Kingdom") ~ "Constant high",
+    country %in% c("Finland", "Portugal", "Slovenia", "Spain") ~ "High with increase", 
+    country %in% c("Argentina", "Brazil", "Chile", "Colombia", "Czechia", "France", "Greece", "Hungary", "Italy", "Latvia", "Malta", "Mexico", "Netherlands", "Türkiye") ~ "Constant low",
+    country %in% c("Austria", "Canada", "Costa Rica", "Croatia", "Germany", "Israel", "Japan", "New Zealand", "Norway", "Slovak Republic", "Switzerland" , "United States") ~ "Constant zero")) 
+
+df_parentalleave_common |>
+  ggplot(aes(x = year, y = paternityleave_length, color = country)) +
+  geom_line() +
+  facet_wrap(~paternityleave_group, scales = "free_y") +
+  geom_text_repel(data = df_parentalleave_common |> filter(year == 2023), 
+                  aes(label = country), 
+                  hjust = 0, # Position labels slightly to the right
+                  nudge_x = 0.2, # Move labels slightly away from the last point
+                  direction = "y", # Avoid overlapping
+                  size = 2,
+                  max.overlaps = 15) +
+  scale_x_continuous(breaks = seq(2005, 2023, by = 2)) +
+  labs(title = "Paternity leave lengths",
+       x = "Year",
+       y = "Length of paternity leave (days)",
+       color = "Country") +
+  theme_minimal()+
+  theme(legend.position = "none")
+
+# Cut-off at 4 years prior and after 
 
 # Which countries had a change in the length of paternity leave between 2009 and 2019?
 
@@ -143,33 +172,11 @@ country_list |> summarise(n())
 
 # Combining the dataframes --------------------------------------------------
 
-# How many zeroes in the gwg column?
-
-df_gwg_common |>
-  filter(gwg == 0) |>
-  count()
-
-# 34 zeroes, 39 NAs
-
-# turning the gwg dataframe to the wide format
-
-gwg_wide <- df_gwg_common |>
-  pivot_wider(names_from = gwg_type, values_from = gwg)
-
-# how many zeroes in the new columns
-
-gwg_wide |>
-  filter(D9 == 0) |>
-  count()
- 
-# MEDIAN: 4 NAs , 0 zeroes
-# D1 43 NAs, 26 zeroes
-# D9 28 NAs, 8 zeroes
 
 # merging the dataframes
 
 df_combined <- df_parentalleave_common |>
-  left_join(gwg_wide, by = c("country", "year", "country_code"))
+  left_join(gwg_wide, by = c("country", "year"))
 
 View(df_combined)
 
