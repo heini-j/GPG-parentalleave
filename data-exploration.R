@@ -180,3 +180,7 @@ df_combined <- df_parentalleave_common |>
 
 View(df_combined)
 
+# Saving the combined data --------------------------------------------------
+
+write_rds(df_combined, "data/combined.rds")
+
