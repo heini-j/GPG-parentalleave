@@ -3,7 +3,7 @@ library(dplyr)
 
 # Load the data to R ---------------------------------------------------------
 
-df_gwg <- read_csv("OECD.ELS.SAE,DSD_EARNINGS@GENDER_WAGE_GAP,+......_T.csv")
+df_gwg <- read_csv("OECD.ELS.SAE,DSD_EARNINGS@GENDER_WAGE_GAP,+all.csv")
 
 View(df_gwg)
 
