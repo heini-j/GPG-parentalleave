@@ -203,22 +203,32 @@ df_missing |>
 # plotting missing values per year
 
 df_missing_year <- df_combined |>
-  group_by(year) |>
+  group_by(year, country) |>
   summarise(missing_median = sum(is.na(gwg_median)),
             missing_d1 = sum(is.na(gwg_d1)),
             missing_d9 = sum(is.na(gwg_d9)))
 
+
 df_missing_year |>
   ggplot(aes(x = year, y = missing_median)) +
-  geom_point() +
-  geom_point(aes(y = missing_d1), color = "red") +
-  geom_point(aes(y = missing_d9), color = "blue") +
+  geom_point(size = 1)+
+  facet_wrap(~country) +
   labs(title = "Missing values in the GWG columns",
        x = "Year",
        y = "Number of missing values") +
   theme_minimal()
 
 # a lot of missing values before 2010; basically gwg info from more than half of the countries missing
+
+# Countries that have least/longest period of no missing values:~
+# ~2000: Austria, Belgium, Canada, Czechia, Denmark, Germany, Hungary, Israel, New Zealand, Norway, Poland, Slovak, Sweden, Switzerland
+# Longer: Australia, Finland, Japan, UK, US
+# To be removed: Turkey, Luxembourg, Argentina, india, Croatia, Bulgaria, Romania
+
+# Removing the countries with a long period of missing values
+
+df_combined <- df_combined |>
+  filter(!country %in% c("Türkiye", "Luxembourg", "Argentina", "India", "Croatia", "Bulgaria", "Romania"))
 
 # Saving the combined data --------------------------------------------------
 
