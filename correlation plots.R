@@ -405,4 +405,100 @@ df |>
   theme_minimal()
 
 
+# Looking for control group --------------------------------------------------
 
+# Constant zero group --------------------------------------------------------
+
+# Austria
+
+
+# compared to Germany?
+
+df |>
+  filter(country == "Austria") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2008, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Austria",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Switzerland
+
+df |>
+  filter(country == "Switzerland") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2008, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Switzerland",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# compared to canada
+
+df |>
+  filter(country == "United States") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in US",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# compared to australia?
+
+df |>
+  filter(country == "New Zealand") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2014, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in NZ",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+
+# Netherlands
+
+df |>
+  filter(country =="Netherlands") |>
+  filter(year > 2015) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  #geom_vline(xintercept = 2003, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Netherlands",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Israel
+
+df |>
+  filter(country =="Israel") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2003, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Israel",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
