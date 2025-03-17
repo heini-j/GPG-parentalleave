@@ -502,3 +502,199 @@ df |>
        x = "Year",
        y = "Median pay gap") +
   theme_minimal()
+
+# Costa Rica
+
+df |>
+  filter(country =="Costa Rica") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Costa Rica",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Slovak
+
+df |>
+  filter(country =="Slovak Republic") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in SR",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+
+# Brazil
+
+df |>
+  filter(country =="Brazil") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Brazil",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Chile
+
+df |>
+  filter(country =="Chile") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Chile",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Colombia
+
+df |>
+  filter(country =="Colombia") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Colombia",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Czechia
+
+df |>
+  filter(country =="Czechia") |>
+  filter(year > 1999) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Czech Republic",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Greece
+
+df |>
+  filter(country =="Greece") |>
+  filter(year > 2000) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Greece",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Hungary
+
+df |>
+  filter(country =="Hungary") |>
+  filter(year > 1990) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Hungary",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Latvia
+
+df |>
+  filter(country =="Latvia") |>
+  filter(year > 2010) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Latvia",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Malta
+
+df |>
+  filter(country =="Malta") |>
+  filter(year > 2010) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Malta",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Mexico
+
+df |>
+  filter(country =="Mexico") |>
+  filter(year > 1990) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Mexico",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Netherlands
+
+df |>
+  filter(country =="Netherlands") |>
+  filter(year > 2015) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Netherlands",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# Peru
+
+df |>
+  filter(country =="Peru") |>
+  filter(year > 2010) |>
+  ggplot(aes(x = year, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_point(aes(y = gwg_d1), color = "red") +
+  geom_point(aes(y = gwg_d9), color = "blue") +
+  geom_vline(xintercept = 2012, linetype = "dashed", color = "black") +
+  labs(title = "Median pay gap in Peru",
+       x = "Year",
+       y = "Median pay gap") +
+  theme_minimal()

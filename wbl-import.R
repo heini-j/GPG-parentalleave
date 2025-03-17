@@ -99,6 +99,11 @@ df_wbl <- df_parental_leave_clean |>
     dismissal_prohibited_log
   )
 
+# Renaming Korea in the country column as "South Korea" to match the other dataset
+
+df_wbl <- df_wbl |>
+  mutate(country = ifelse(country == "Korea, Rep.", "South Korea", country))
+
 # Saving the cleaned data ----------------------------------------------------------
 
 write_rds(df_wbl, "data/parental_leave.rds")

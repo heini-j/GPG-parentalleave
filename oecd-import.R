@@ -15,6 +15,7 @@ names(df_gwg)
 df_gwg <- df_gwg |>
   select(REF_AREA, "Reference area", "AGGREGATION_OPERATION", "TIME_PERIOD", "OBS_VALUE")
 
+
 # renaming to match with the wbl dataset
 
 df_gwg_clean <- df_gwg |>
@@ -24,6 +25,11 @@ df_gwg_clean <- df_gwg |>
     year = "TIME_PERIOD",
     gwg = "OBS_VALUE",
     gwg_type = "AGGREGATION_OPERATION")
+
+# Renaming Korea in the country column as "South Korea" to match the other dataset
+
+df_gwg_clean <- df_gwg_clean |>
+  mutate(country = ifelse(country == "Korea", "South Korea", country))
 
 
 View(df_gwg_clean)
