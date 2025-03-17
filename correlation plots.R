@@ -5,13 +5,6 @@ library(ggplot2)
 
 df <- read_rds("data/combined.rds")
 
-df |>
-  group_by(country)|>
-  select(paternityleave_group) |>
-  filter(paternityleave_group == "High with increase")|>
-  print(country)
-
-
 # Plotting -------------------------------------------------------------------
 
 # Making a scatter plot that shows the relationship between paternity leave and maternity leave
