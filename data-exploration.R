@@ -36,7 +36,7 @@ country_list <- df_parentalleave |>
 
 summarise(country_list, n())
 
-# 46 shared countries
+# 47 shared countries
 
 # filtering the datasets to only include the shared countries
 
@@ -89,16 +89,21 @@ View(df_combined)
 df_combined <- df_combined |>
   mutate(paternity_total = paternityleave_length + shared_length_father)
 
-# For a 4-year cut-off, a country has to have at least a 14-day paternity leave in 2020
+# doing the same for maternity leaves
+
+df_combined <- df_combined |>
+  mutate(maternity_total = maternityleave_length + shared_length_mother)
+
+# For a 3-year follow-up, a country has to have at least a 14-day paternity leave in 2020
 
 df_combined |> 
   group_by(country) |> 
   filter(any(year == 2020 & paternity_total >= 14)) |>
   summarise(n = n_distinct(country))
 
-# 26 countries out of 46 fulfill this condition
+# 27 countries out of 47 fulfill this condition
 
-# Plotting the paternity leave lengths in all the 46 countries for grouping
+# Plotting the paternity leave lengths in all the 47 countries for grouping
 selection_countries <- df_combined |>
   ggplot(aes(x = year, y = paternity_total, color = country)) +
   geom_line() +
@@ -126,15 +131,20 @@ ggsave("plots/selected.png", selection_countries, width = 20, height = 20)
 
 df_combined <- df_combined |>
   mutate(paternityleave_group = case_when(
-    country %in% c("Australia",  "Bulgaria", "Canada", "Cyprus", "Denmark", "Estonia", "Germany", "Ireland", "Italy", "Japan", "Lithuania", "Poland", "Luxembourg", "United Kingdom") ~ "Increase from zero",
+    country %in% c("Australia",  "Bulgaria", "Canada", "Cyprus", "Denmark", "Estonia", "Germany", "Ireland", "Italy", "Japan", "Lithuania", "Poland", "Luxembourg", "South Korea", "United Kingdom") ~ "Increase from zero",
     country %in% c("Belgium", "Croatia", "Finland", "France", "Iceland", "Norway", "Portugal", "Romania", "Slovenia", "Spain", "Sweden") ~ "High with increase", 
     country %in% c("Argentina", "Brazil", "Chile", "Colombia", "Czechia", "Greece", "Hungary", "Latvia", "Malta", "Mexico", "Netherlands", "Peru", "Türkiye") ~ "Constant low",
     country %in% c("Austria", "Costa Rica", "India", "Israel", "New Zealand", "Slovak Republic", "Switzerland" , "United States") ~ "Constant zero")) 
 
+# Adding numerical values to the groups
+
+df_combined <- df_combined |>
+  mutate(paternityleave_group = factor(paternityleave_group, levels = c("Constant zero", "Constant low", "Increase from zero", "High with increase")))
+
 # Plotting the paternity leave lengths for the selected countries
 
 
-df_combined |>
+length_by_group <- df_combined |>
   filter(year >=1971 & year <= 2020) |>
   ggplot(aes(x = year, y = paternity_total, color = country)) +
   geom_line() +
@@ -154,10 +164,9 @@ df_combined |>
   theme_minimal()+
   theme(legend.position = "none")
 
-# Adding one more variable to the combined dataset to account for change to > 14 days paternity leave until 2020 and no change
+# Saving the plot
 
-df_combined <- df_combined |>
-  mutate(paternityleave_change = ifelse(paternity_total == "Increase from zero" | "High with increase", 1, 0))
+ggsave("plots/length_by_group.png", length_by_group, width = 20, height = 20)
 
 # Renaming some columns for clearer read
 
