@@ -79,10 +79,7 @@ df_combined <- df_parentalleave_common |>
 View(df_combined)
 
 
-# Data exploration to find a suitable sample  ----------------------------------------
-
-
-# COmbining the paternity leave and fathers' share of shared leave to form a complete picture of the parental leave
+# Combining the paternity leave and fathers' share of shared leave to form a complete picture of the parental leave
 
 df_combined <- df_combined |>
   mutate(paternity_total = paternityleave_length + shared_length_father)
