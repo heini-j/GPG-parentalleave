@@ -197,13 +197,61 @@ write_rds(df, "data/combined_clean.rds")
 
 # plotting the median pay gap by year
 
+# Making a scatter plot that shows the relationship between paternity leave and maternity leave
+
+ggplot(df, aes(x = paternity_total, y = gwg_median)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Relationship between paternity leave and GPG",
+       x = "Paternity leave",
+       y = "Median pay gap") +
+  theme_minimal()
+
+# for different groups of countries
+
 gpg_per_year <- ggplot(df, aes(x = year, y = gwg_median)) +
   geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
   geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
   facet_grid(~paternityleave_group, scales = "free_x") +
-  labs(title = "Median gender pay fap",
+  labs(title = "Median gender pay gap",
        x = "Year",
        y = "Gender pay gap (%)") +
   theme_minimal()
 
-?geom_smooth
+# plotting the 1st decile pay gap by year
+
+gpg_d1 <- ggplot(df, aes(x = year, y = gwg_d1)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3, na.rm = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
+  facet_grid(~paternityleave_group, scales = "free_x") +
+  labs(title = "D1 gender pay gap",
+       x = "Year",
+       y = "Gender pay gap (%)") +
+  theme_minimal()
+
+# plotting the 9th decile pay gap by year
+
+gpg_d9 <- ggplot(df, aes(x = year, y = gwg_d9)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3, na.rm = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
+  facet_grid(~paternityleave_group, scales = "free_x") +
+  labs(title = "D9 gender pay gap",
+       x = "Year",
+       y = "Gender pay gap (%)") +
+  theme_minimal()
+
+# Saving the plot
+
+ggsave("plots/median_pay_gap_by_year.png", gpg_per_year)
+
+
+# Relationship between maternity and paternity leaves -> not a very good visualisation
+
+ggplot(df, aes(x = paternity_total, y = maternity_total)) +
+  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  facet_wrap(~paternityleave_group, scales = "free") +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Relationship between paternity leave and GPG",
+       x = "Paternity leave",
+       y = "Median pay gap") +
+  theme_minimal()

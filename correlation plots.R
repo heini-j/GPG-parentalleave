@@ -3,64 +3,9 @@ library(ggplot2)
 
 # Loading the data -----------------------------------------------------------
 
-df <- read_rds("data/combined.rds")
+df <- read_rds("data/combined_clean.rds")
 
-# Plotting -------------------------------------------------------------------
-
-# Making a scatter plot that shows the relationship between paternity leave and maternity leave
-
-ggplot(df, aes(x = paternity_total, y = gwg_median)) +
-  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE) +
-  labs(title = "Relationship between paternity leave and GPG",
-       x = "Paternity leave",
-       y = "Median pay gap") +
-  theme_minimal()
-
-# relationship between paternity and maternity leaves
-
-df <- df |>
-  mutate(maternity_total = maternityleave_length + shared_length_mother)
-
-ggplot(df, aes(x = paternity_total, y = maternity_total)) +
-  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
-  facet_wrap(~paternityleave_group, scales = "free_y") +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Relationship between paternity leave and GPG",
-       x = "Paternity leave",
-       y = "Median pay gap") +
-  theme_minimal()
-
-# paternityleave and median pay gap with a linear regression line
-
-ggplot(df, aes(x = paternityleave_length, y = gwg_median)) +
-  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE) +
-  labs(title = "Relationship between paternity leave and GPG",
-       x = "Paternity leave",
-       y = "Median pay gap") +
-  theme_minimal()
-
-# promising as line is negative, however, the relationship doesnt seem very clear
-
-# plotting the median pay gap by year
-
-gpg_per_year <- ggplot(df, aes(x = year, y = gwg_median)) +
-  geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
-  facet_grid(~paternityleave_group, shrink = TRUE) +
-  labs(title = "Median pay gap by year",
-       x = "Year",
-       y = "Median pay gap") +
-  theme_minimal()
-
-?facet_grid
-
-# Saving the plot
-
-ggsave("plots/median_pay_gap_by_year.png", gpg_per_year)
-
-# Country-wise analysis ------------------------------------------------------
+# Country-wise plots ------------------------------------------------------
 
 # Zero to >= 14 days ---------------------------------------------------------
 
