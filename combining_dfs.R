@@ -18,12 +18,13 @@ df_parentalleave |>
 
 # 190 different countries
 
-df_gwg |>
+country_list <- df_gwg |>
   select(country) |>
-  distinct() |>
-  count()
+  distinct()
 
-# oecd dataset has 50 different countries
+View(country_list)
+
+# oecd dataset has 50 different countries (includes also EU, OECD, and other aggregates)
 
 # finding out which countries are covered in both datasets
 
