@@ -186,28 +186,53 @@ df_analysis |>
   theme_minimal(base_family = "lato", base_size = 30)+
   theme(legend.position = "bottom")
 
-# Running the TWFE analysis ---------------------------------------------------
+# Running the TWFE analysis, 14 day cut-off  ---------------------------------------------------
 
 df_analysis <- df_analysis |>
   filter(event_time >= -5)
 
+# Median
 
 model <- feols(gwg_median ~ treated_post | country + year, data = df_analysis, cluster = "country")
-feols1 <- summary(model)
+feols1 <- summary(model) # not significant, p <.1
 
 # with controls
 
 model_controls <- feols(gwg_median ~ treated_post + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
-feols1_controls <- summary(model_controls)
+feols1_controls <- summary(model_controls) # equality and gini significant only at p<.1
 
-# event study
+# d1
+
+model_d1 <- feols(gwg_d1 ~ treated_post | country + year, data = df_analysis, cluster = "country")
+summary(model_d1) # significant at p<..05 level!
+
+# with controls
+
+model_d1_controls <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+summary(model_d1_controls) # gini significant at p<.05 level, no other significance
+
+# d9
+
+model_d9 <- feols(gwg_d9 ~ treated_post | country + year, data = df_analysis, cluster = "country")
+summary(model_d9) # not significant
+
+# with controls
+
+model_d9_controls <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+summary(model_d9_controls) # no significance
+
+
+# Event studies ----------------------------------------------------------------
+
+# Median
 
 model_event <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
 events1 <-  summary(model_event)
 
 
-ggiplot(model_event) +
+model_nocontrols <- ggiplot(model_event) +
   xlab("Years from treatment") +
+  labs(title = "Event study without controls") +
   theme_minimal(base_family = "lato", base_size = 30)
 
 # with controls
@@ -218,30 +243,31 @@ events_controls <-  summary(model_event_controls)
 ggiplot(model_event_controls, pt.join = TRUE) +
   xlab("Years from treatment") +
   theme_minimal(base_family = "lato", base_size = 30)
-  
 
-# Callaway & Sant Anna Staggered DID -------------------------------------------
 
-df_did_sample <- df_analysis |>
-  filter(country %in% c("United Kingdom", "South Korea", "New Zealand", "United States", "Israel", "Slovak Republic"))
-         
-df_did_sample$country <- as.numeric(as.factor(df_did_sample$country))
+# d1
 
-att_gt_est <- att_gt(yname = "gwg_median",  
-                     tname = "year",             
-                     idname = "country",         
-                     gname = "treatment_year",   
-                     data = df_did_sample
-                     )
+model_event_d1 <- feols(gwg_d1 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+summary(model_event_d1)
 
-?att_gt
-summary(att_gt_est)
+# with controls
 
-agg_effects <- aggte(att_gt_est, type = "group", na.rm = TRUE)
-summary(agg_effects)
+model_event_d1_controls <- feols(gwg_d1 ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+summary(model_event_d1_controls)  # gini gains significance
 
-ggdid(att_gt_est)
+# d9
 
+model_event_d9 <- feols(gwg_d9 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+summary(model_event_d9)
+
+# with controls
+
+model_event_d9_controls <- feols(gwg_d9 ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+summary(model_event_d9_controls) # parallel assumptions doesnt hold
+
+# TWFE, 14 week cut-off ---------------------------------------------------
+
+# Creating a new variable to indicate treatment and control for 14-week cut-off
 
 
 
