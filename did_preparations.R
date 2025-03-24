@@ -53,8 +53,8 @@ equality <- equality |>
          year = "Report Year",
          equality_index = "WBL INDEX") |>
   select(country, year, equality_index) |>
-  filter(country %in% c("Australia", "Canada", "Korea, Rep.", "Germany", "Japan", "United Kingdom",
-                        "New Zealand", "United States", "Austria", "Israel", "Slovak Republic", "Czechia", "Hungary")) |>
+  #filter(country %in% c("Australia", "Canada", "Korea, Rep.", "Germany", "Japan", "United Kingdom",
+                        #"New Zealand", "United States", "Austria", "Israel", "Slovak Republic", "Czechia", "Hungary")) |>
   mutate(country = ifelse(country == "Korea, Rep.", "South Korea", country))
 
 equality$year <- as.numeric(equality$year)
@@ -269,8 +269,131 @@ summary(model_event_d9_controls) # parallel assumptions doesnt hold
 
 # Creating a new variable to indicate treatment and control for 14-week cut-off
 
+df_14w <- df |>
+  filter(country %in% c("Belgium", "France", "South Korea", "Norway", "Japan", "Sweden",
+                        "New Zealand", "United States", "Israel", "Slovak Republic", "Hungary"))
+
+df_14w <- df_14w |>
+  mutate(treatment = ifelse(country %in% c("Belgium", "France", "South Korea", "Norway", "Japan", "Sweden"), 1, 0))
+
+df_14w <- df_14w |>
+  mutate(treatment = as.factor(treatment))
+
+df_14w <- df_14w |>
+  left_join(equality, by = c("country", "year"))
 
 
+df_14w <- df_14w |>
+  mutate(treatment_year = case_when(
+    country == "Belgium" ~ 2004,
+    country == "France" ~ 2016,
+    country == "South Korea" ~ 2003,
+    country == "Norway" ~ 2015,
+    country == "Japan" ~ 2012,
+    country == "Sweden" ~ 2017,
+    treatment == 0 ~ 0))
+
+df_14w <- df_14w |>
+  left_join(gdp, by = c("country", "year"))
+
+df_14w <- df_14w |>
+  mutate(
+    event_time = ifelse(treatment_year > 0, year - treatment_year, treatment_year),
+    treated_post = ifelse(year >= treatment_year & treatment_year > 0, 1, 0)
+  )
+
+# TWFE, 14 week cut-off ---------------------------------------------------
+
+df_14w <- df_14w |>
+  filter(event_time >= -7)
+
+# Median
+
+model <- feols(gwg_median ~ treated_post | country + year, data = df_14w, cluster = "country")
+feols1 <- summary(model) # not significant, p <.1
+
+# with controls
+
+model_controls <- feols(gwg_median ~ treated_post + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+feols1_controls <- summary(model_controls) #gini significant at p<.001
+
+# d1
+
+model_d1 <- feols(gwg_d1 ~ treated_post | country + year, data = df_14w, cluster = "country")
+summary(model_d1) # significant at p<.1 level
+
+# with controls
+
+model_d1_controls <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+summary(model_d1_controls) # gini significant at p<.05 level, no other significance
+
+# d9
+
+model_d9 <- feols(gwg_d9 ~ treated_post | country + year, data = df_14w, cluster = "country")
+summary(model_d9) # p<.05
+
+# with controls
+
+model_d9_controls <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+summary(model_d9_controls) # no significance
 
 
+# Event studies ----------------------------------------------------------------
 
+# Median
+
+model_event <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_14w, cluster = "country")
+events1 <-  summary(model_event)
+
+
+model_nocontrols <- ggiplot(model_event) +
+  xlab("Years from treatment") +
+  labs(title = "Event study without controls") +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+# with controls
+
+model_event_controls <- feols(gwg_median ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+events_controls <-  summary(model_event_controls)
+
+ggiplot(model_event_controls, pt.join = TRUE) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+
+# d1
+
+model_event_d1 <- feols(gwg_d1 ~ i(event_time, ref = -1) | country + year, data = df_14w, cluster = "country")
+summary(model_event_d1)
+
+ggiplot(model_event_d1) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+# with controls
+
+model_event_d1_controls <- feols(gwg_d1 ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+summary(model_event_d1_controls)  
+
+
+ggiplot(model_event_d1_controls, pt.join = TRUE) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+# d9
+
+model_event_d9 <- feols(gwg_d9 ~ i(event_time, ref = -1) | country + year, data = df_14w, cluster = "country")
+summary(model_event_d9)
+
+ggiplot(model_event_d9) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+# with controls
+
+model_event_d9_controls <- feols(gwg_d9 ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_14w, cluster = "country")
+summary(model_event_d9_controls) # parallel assumptions doesnt hold
+
+ggiplot(model_event_d9_controls, pt.join = TRUE) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
