@@ -7,6 +7,7 @@ library(ggplot2)
 library(ggrepel)
 library(fixest)
 library(showtext)
+library(ggfixest)
 
 
 # Enable showtext
@@ -192,36 +193,48 @@ df_analysis <- df_analysis |>
 
 
 model <- feols(gwg_median ~ treated_post | country + year, data = df_analysis, cluster = "country")
-summary(model)
+feols1 <- summary(model)
+
+# with controls
+
+model_controls <- feols(gwg_median ~ treated_post + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+feols1_controls <- summary(model_controls)
 
 # event study
 
 model_event <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
-summary(model_event)
-iplot(model_event)
+events1 <-  summary(model_event)
 
-# Two way fixed effects model --------------------------------------------------
 
-df_did_sample <- df_did |>
-  filter(year > 1995)
+ggiplot(model_event) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
 
-twfe_event_study <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_did_sample)
-summary(twfe_event_study)
+# with controls
 
-iplot(twfe_event_study)
+model_event_controls <- feols(gwg_median ~ i(event_time, ref = -1) + equality_index + gdp + gini | country + year, data = df_analysis, cluster = "country")
+events_controls <-  summary(model_event_controls)
 
+ggiplot(model_event_controls, pt.join = TRUE) +
+  xlab("Years from treatment") +
+  theme_minimal(base_family = "lato", base_size = 30)
+  
 
 # Callaway & Sant Anna Staggered DID -------------------------------------------
 
+df_did_sample <- df_analysis |>
+  filter(country %in% c("United Kingdom", "South Korea", "New Zealand", "United States", "Israel", "Slovak Republic"))
+         
 df_did_sample$country <- as.numeric(as.factor(df_did_sample$country))
 
-att_gt_est <- att_gt(yname = "gwg_median",  # Outcome variable
-                     tname = "year",             # Time variable
-                     idname = "country",         # Unit ID (Country)
-                     gname = "treatment_year",   # First year of treatment
-                     data = df_did_sample,
-                     control_group="notyettreated"
+att_gt_est <- att_gt(yname = "gwg_median",  
+                     tname = "year",             
+                     idname = "country",         
+                     gname = "treatment_year",   
+                     data = df_did_sample
                      )
+
+?att_gt
 summary(att_gt_est)
 
 agg_effects <- aggte(att_gt_est, type = "group", na.rm = TRUE)
