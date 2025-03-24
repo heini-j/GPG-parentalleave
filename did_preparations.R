@@ -5,31 +5,35 @@ library(readr)
 library(readxl)
 library(ggplot2)
 library(ggrepel)
-install.packages("fixest")
 library(fixest)
+library(showtext)
 
+
+# Enable showtext
+showtext_auto()
+
+# Add a Google Font 
+font_add_google("Lato", "lato")
 
 # Reading the data to R -------------------------------------------------------
 
-df <- read_rds("data/combined.rds")
+df <- read_rds("data/combined_clean.rds")
 
-# Data preparation for the d-i-d analysis --------------------------------------
+# Data preparation for the statistical analysis, 14 days cut-off  --------------------------------------
 
 # Selecting the countries of interest
 
-df_did <- df |>
+df_analysis<- df |>
   filter(country %in% c("Australia", "Canada", "South Korea", "Germany", "Japan", "United Kingdom",
-                        "New Zealand", "United States", "Austria", "Israel", "Slovak Republic", "Czechia", "Hungary"))
+                        "New Zealand", "United States", "Israel", "Slovak Republic", "Hungary"))
 
-
-View(df_did)
 
 # Creating a new variable to indicate treatment and control
 
-df_did <- df_did |>
+df_analysis <- df_analysis |>
   mutate(treatment = ifelse(country %in% c("Australia", "Canada", "South Korea", "Germany", "Japan", "United Kingdom"), 1, 0))
 
-df_did <- df_did |>
+df_analysis <- df_analysis |>
   mutate(treatment = as.factor(treatment))
 
 # Adding control variables to the data -----------------------------------------
@@ -56,7 +60,7 @@ equality$year <- as.numeric(equality$year)
 
 # Adding to the main dataframe
 
-df_did <- df_did |>
+df_analysis <- df_analysis |>
   left_join(equality, by = c("country", "year"))
            
 # GDP per capita & Gini index
@@ -87,16 +91,45 @@ gdp <- gdp |>
 
 # Adding the values to the main dataframe
 
-df_did <- df_did |>
+df_analysis <- df_analysis |>
   left_join(gdp, by = c("country", "year"))
+
+# adding the treatment year
+
+df_analysis <- df_analysis |>
+  mutate(treatment_year = case_when(
+    country == "Australia" ~ 2014,
+    country == "Canada" ~ 2020,
+    country == "South Korea" ~ 2003,
+    country == "Germany" ~ 2008,
+    country == "Japan" ~ 2012,
+    country == "United Kingdom" ~ 2003,
+    treatment == 0 ~ 0))
+
+# creating variables for event time relative to treatment year and a dummy for post-treatment years
+
+df_analysis <- df_analysis |>
+  mutate(
+    event_time = ifelse(treatment_year > 0, year - treatment_year, treatment_year),
+    treated_post = ifelse(year >= treatment_year & treatment_year > 0, 1, 0)
+  )
+
+write_rds(df_analysis, "data/df_analysis.rds")
 
 # Comparing treatment and control conditions -----------------------------------
 
-# testing parallel trends assumption
+# Summary statistics
 
-summary_did <- df_did |> 
-  filter(year < 2012) |>
-  group_by(treatment, country) |>
+summary_stats <- df_analysis |> 
+  group_by(country) |>
+  summarise(
+    mean_gdp = mean(gdp, na.rm = TRUE))
+
+# testing parallel trends assumption, from 1995 to first treatment year
+
+summary_did <- df_analysis |> 
+  filter(year >= 1995, year < 2003) |>
+  group_by(treatment) |>
   summarize(
     mean_gdp = mean(gdp, na.rm = TRUE),
     mean_gender_equality = mean(equality_index, na.rm = TRUE),
@@ -108,89 +141,97 @@ summary_did <- df_did |>
 
 View(summary_did)
 
-# plotting the gwg median values per treatment group and year
+# gini index only available for Canada for the early years. Groups pretty equal in 
 
-df_did |>
-  filter(year >= 1995, year <= 2003) |>
-  #filter(!(country %in% c("Slovak Republic", "Israel"))) |>
-  ggplot(aes(x = year, y = gwg_median, color = treatment)) +
-  geom_point(size = 1, alpha = 0.6) +
-  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
-  # geom_text_repel(
-  #   data = df_did |> filter(year == 2003),  # Label only the last year
-  #   aes(label = country),
-  #   hjust = 1, nudge_x = 0.5, size = 3
-  # ) +
-  labs(title = "X") +
-  theme_minimal()
+# Plotting the parallel trends assumption
 
-?geom_smooth
-
-
-# finding the amount of missing values in the gdp variable
-
-df_did |> 
-  summarise(missing_gdp = sum(is.na(gdp)))
-
-# Creating a new variable to indicate the treatment year individually for each country
+df_analysis |>
+  filter(year >= 1995, year < 2003) |>
+  ggplot(aes(x = year, y = gwg_median, colour = treatment)) +
+  geom_point(size = 1, alpha = 0.8) +
+  geom_smooth(method = "lm") +
+  scale_colour_paletteer_d("lisa::BridgetRiley") +
+  labs(title = NULL,
+       x = NULL,
+       y = "Median gender wage gap (%)",
+       colour = "Treatment condition") +
+  theme_minimal(base_family = "lato", base_size = 30)+
+  theme(legend.position = "bottom")
 
 
-df_did <- df_did |>
-  mutate(treatment_year = case_when(
-    country == "Australia" ~ 2014,
-    country == "Canada" ~ 2020,
-    country == "South Korea" ~ 2003,
-    country == "Germany" ~ 2008,
-    country == "Japan" ~ 2012,
-    country == "United Kingdom" ~ 2003,
-    treatment == 0 ~ 0))
+df_analysis |>
+  filter(year >= 1995, year < 2003) |>
+  ggplot(aes(x = year, y = gwg_d1, colour = treatment)) +
+  geom_point(size = 1, alpha = 0.8) +
+  geom_smooth(method = "lm") +
+  scale_colour_paletteer_d("lisa::BridgetRiley") +
+  labs(title = NULL,
+       x = NULL,
+       y = "1st decile gender wage gap (%)",
+       colour = "Treatment condition") +
+  theme_minimal(base_family = "lato", base_size = 30)+
+  theme(legend.position = "bottom")
 
-View(df_did)
+df_analysis |>
+  filter(year >= 1995, year < 2003) |>
+  ggplot(aes(x = year, y = gwg_d9, colour = treatment)) +
+  geom_point(size = 1, alpha = 0.8) +
+  geom_smooth(method = "lm") +
+  scale_colour_paletteer_d("lisa::BridgetRiley") +
+  labs(title = NULL,
+       x = NULL,
+       y = "Median gender wage gap (%)",
+       colour = "Treatment condition") +
+  theme_minimal(base_family = "lato", base_size = 30)+
+  theme(legend.position = "bottom")
 
-# Creating a relative time variable to account for years before and after the treatment
+# Running the TWFE analysis ---------------------------------------------------
 
-df_did <- df_did |>
-  mutate(relative_time = case_when(
-    treatment == 1 ~ year - treatment_year,
-    treatment == 0 ~ NA))
+df_analysis <- df_analysis |>
+  filter(event_time >= -5)
 
-# Filtering the data to include only the years around the treatment year
+
+model <- feols(gwg_median ~ treated_post | country + year, data = df_analysis, cluster = "country")
+summary(model)
+
+# event study
+
+model_event <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+summary(model_event)
+iplot(model_event)
+
+# Two way fixed effects model --------------------------------------------------
 
 df_did_sample <- df_did |>
-  filter((relative_time >= -3 & relative_time <= 3) | is.na(relative_time)) |>
-  filter(year > 1999)
+  filter(year > 1995)
 
-# Staggered did analysis ------------------------------------------------------
+twfe_event_study <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_did_sample)
+summary(twfe_event_study)
+
+iplot(twfe_event_study)
+
+
+# Callaway & Sant Anna Staggered DID -------------------------------------------
 
 df_did_sample$country <- as.numeric(as.factor(df_did_sample$country))
 
+att_gt_est <- att_gt(yname = "gwg_median",  # Outcome variable
+                     tname = "year",             # Time variable
+                     idname = "country",         # Unit ID (Country)
+                     gname = "treatment_year",   # First year of treatment
+                     data = df_did_sample,
+                     control_group="notyettreated"
+                     )
+summary(att_gt_est)
 
-# locating the missing data in the sample df
+agg_effects <- aggte(att_gt_est, type = "group", na.rm = TRUE)
+summary(agg_effects)
 
-df_did_sample |> 
-  summarise(missing_gdp = sum(is.na(year)))
+ggdid(att_gt_est)
 
 
 
-att_gt_results <- att_gt(
-  yname = "gwg_median",           
-  tname = "year",              
-  idname = "country",          
-  gname = "treatment_year",
-  data = df_did_sample,
-  panel = FALSE,
-  control_group = "notyettreated"
-)
 
-ggdid(att_gt_results)
 
-twfe_model <- feols(gwg_median ~ i(relative_time, treatment, ref = -1) | country + year, data = df_did_sample)
-summary(twfe_model)
 
-iplot(twfe_model)
 
-table(df_did_sample$treatment_year)
-
-colSums(is.na(df_did))
-
-?att_gt
