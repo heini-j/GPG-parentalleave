@@ -2,6 +2,15 @@ library(dplyr)
 library(ggplot2)
 library(ggrepel)
 library(patchwork)
+library(showtext)
+library(paletteer)
+
+
+# Enable showtext
+showtext_auto()
+
+# Add a Google Font 
+font_add_google("Lato", "lato")
 
 # Reading the data -----------------------------------------------------------
 
@@ -14,34 +23,62 @@ df <- read_rds("data/combined.rds")
 p_median <- df |>
   ggplot(aes(x = year, y = gwg_median)) +
   geom_point(size = 1, alpha = 0.4) +
-  geom_smooth(method = "lm", se = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#D12E6CFF") +
   labs(title = "Median",
        x = NULL,
        y = "Gender pay gap (%)") +
-  theme_minimal()
+  scale_y_continuous(limits = c(0, 65)) +
+  theme_minimal(base_family = "lato", base_size = 30)
+
 
 p_d1 <- df |>
   ggplot(aes(x = year, y = gwg_d1)) +
   geom_point(size = 1, alpha = 0.4) +
-  geom_smooth(method = "lm", se = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#D12E6CFF") +
   labs(title = "1st decile",
        x = NULL,
        y = "Gender pay gap (%)") +
-  theme_minimal()
+  scale_y_continuous(limits = c(0, 65)) +
+  theme_minimal(base_family = "lato", base_size = 30)
 
 p_d9 <- df |>
   ggplot(aes(x = year, y = gwg_d9)) +
   geom_point(size = 1, alpha = 0.4) +
-  geom_smooth(method = "lm", se = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, colour = "#D12E6CFF") +
   labs(title = "9th decile",
        x = NULL,
        y = "Gender pay gap (%)") +
-  theme_minimal()
+  scale_y_continuous(limits = c(0, 65)) +
+  theme_minimal(base_family = "lato", base_size = 30)
 
 
-p_median + p_d1 + p_d9 +
-  plot_annotation(title = 'Gender pay gap in the sample countries') +
+p_combined <- wrap_plots(p_median, p_d1, p_d9) +
   plot_layout(axes = "collect")
+  
+ggsave("plots/gwg_oecd.png", p_combined, width = 10, height = 4, dpi = 300)
+
+
+# A line plot of the average maternity and paternity leaves over time
+df_summary <- df |> 
+  group_by(year, paternity) |> 
+  summarise(
+    maternity_avg = mean(maternity_total, na.rm = TRUE),
+    paternity_avg = mean(paternity_total, na.rm = TRUE)
+  )
+
+p_maternity <- ggplot(df_summary, aes(x = year)) +
+  geom_line(aes(y = maternity_avg, colour = "Mothers"), linewidth = 1.2) +
+  geom_line(aes(y = paternity_avg, colour = "Fathers"), linewidth = 1.2) +
+  scale_color_manual(values = c("Mothers" = "#D32934FF", "Fathers" = "#2BAA92FF")) +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Leave length (days)",
+    colour = NULL
+  ) +
+  theme_minimal(base_family = "lato", base_size = 30)
+
+ggsave("plots/leave_length.png", p_maternity, width = 6, height = 4, dpi = 300)
 
 
 # Finding a fitting sample of countries ----------------------------------------
@@ -53,9 +90,29 @@ country_list <- df |>
   filter(any(year == 2020 & paternity_total >= 14)) |>
   summarise(n = n_distinct(country))
 
+# cut-off at 14 weeks (98 days)?
+
+country_list3 <- df |> 
+  group_by(country) |> 
+  filter(any(year == 2020 & paternity_total >= 98)) |>
+  summarise(n = n_distinct(country))
+
+df |>
+  filter(country == "Sweden", year == 2016) |>
+  select(paternity_total)
+
 country_list$country
 
 # 27 countries out of 47 fulfill this condition
+
+country_list2 <- df |> 
+  group_by(country) |> 
+  filter(any(year == 2023 & paternity_total < 14)) |>
+  summarise(n = n_distinct(country))
+
+country_list2$country
+
+# 10 countries do not achieve a leave length of 14 days by 2023
 
 # Plotting the paternity leave lengths in all the 47 countries for grouping
 selection_countries <- df |>
@@ -199,24 +256,41 @@ write_rds(df, "data/combined_clean.rds")
 
 # Making a scatter plot that shows the relationship between paternity leave and maternity leave
 
-ggplot(df, aes(x = paternity_total, y = gwg_median)) +
+ggplot(df, aes(x = paternity_total, y = maternity_total)) +
   geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
+  facet_wrap(~paternityleave_group, scales = "free") +
   geom_smooth(method = "lm", se = TRUE) +
-  labs(title = "Relationship between paternity leave and GPG",
+  labs(title = "Relationship between parental leaves",
        x = "Paternity leave",
-       y = "Median pay gap") +
+       y = "Maternity leave") +
   theme_minimal()
 
 # for different groups of countries
 
-gpg_per_year <- ggplot(df, aes(x = year, y = gwg_median)) +
+gpg_groups <- ggplot(df, aes(x = year, y = gwg_median)) +
   geom_point(size = 0.7, position = "jitter", alpha = 0.3) +
-  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7) +
-  facet_grid(~paternityleave_group, scales = "free_x") +
-  labs(title = "Median gender pay gap",
-       x = "Year",
+  geom_smooth(method = "lm", se = TRUE, linewidth = 0.7, colour = "#D12E6CFF") +
+  facet_grid(~paternityleave_group) +
+  scale_x_continuous(limits = c(1990, 2023)) +
+  labs(title = NULL,
+       x = NULL,
        y = "Gender pay gap (%)") +
-  theme_minimal()
+  theme_minimal(base_family = "lato", base_size = 30)
+
+ggsave("plots/gpg_groups.png", gpg_groups, width = 6, height = 3, dpi = 300)
+
+p_maternity_groups <- ggplot(df_summary, aes(x = year)) +
+  geom_line(aes(y = maternity_avg, colour = "Mothers"), linewidth = 1.2) +
+  geom_line(aes(y = paternity_avg, colour = "Fathers"), linewidth = 1.2) +
+  facet_grid(~paternityleave_group) +
+  scale_color_manual(values = c("Mothers" = "#D32934FF", "Fathers" = "#2BAA92FF")) +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Leave length (days)",
+    colour = NULL
+  ) +
+  theme_minimal(base_family = "lato", base_size = 30)
 
 # plotting the 1st decile pay gap by year
 
