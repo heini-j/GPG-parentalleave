@@ -5,6 +5,7 @@ library(ggplot2)
 library(fixest)
 library(showtext)
 library(ggfixest)
+library(patchwork)
 
 
 # Enable showtext
@@ -79,14 +80,29 @@ View(summary_stats)
 # Event study: median
 
 event_median_14d <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+
+event_median_14d_sa <- feols(gwg_median ~ sunab(treatment_year, year) | country + year, data = df_analysis, cluster = "country")
+summary(event_median_14d_sa)
+
+
+ggiplot(
+  list('TWFE' = est_twfe, 'Sun & Abraham (2020)' = est_sa20),
+  main = 'Staggered treatment', ref.line = -1, pt.join = TRUE
+)
 events_median <-  summary(event_median_14d)
 
 # plotting the results
 
-ggiplot(event_median_14d) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p1 <- ggiplot(event_median_14d, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(i) Effect on median gender wage gap") +
   theme_minimal(base_family = "lato", base_size = 30)
+
+ggiplot(
+  list('TWFE' = event_median_14d, 'Sun & Abraham (2020)' = event_median_14d_sa),
+  main = 'Staggered treatment', ref.line = -1, pt.join = TRUE
+)
 
 # Event study: 1st decile
 
@@ -95,9 +111,10 @@ events_d1 <-  summary(event_d1_14d)
 
 # plotting the results
 
-ggiplot(event_d1_14d) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p2 <- ggiplot(event_d1_14d, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(ii) Effect on gender wage gap, 1st decile") +
   theme_minimal(base_family = "lato", base_size = 30)
 
 
@@ -108,29 +125,46 @@ events_d9 <-  summary(event_d9_14d)
 
 # plotting the results
 
-ggiplot(event_d9_14d) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p3 <- ggiplot(event_d9_14d, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(iii) Effect on gender wage gap, 9th decile") +
   theme_minimal(base_family = "lato", base_size = 30)
+
+event_plots_14d <- p1 + p2 + p3 +
+  plot_layout(ncol = 1, axes = "collect")
+
+ggsave("plots/event_plots_14d.png", event_plots_14d, width = 5, height = 8, dpi = 300)
+
 
 
 # TWFE with covariates --------------------------------------------------------
 
 # median
 
-twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year 
+twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
       data = df_analysis, cluster = "country")
-summary(twfe_median)
+summary_median <- esttable(twfe_median)
+
+write_excel_csv(summary_median, "twfe_median_14d.csv")
+
+
 
 # 1st decile
 
-twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
       data = df_analysis, cluster = "country")
-summary(twfe_d1)
+summary_d1 <- etable(twfe_d1)
 
+?etable
+
+write_excel_csv(summary_d1, "twfe_d1_14d.csv")
 
 # 9th decile
 
-twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
       data = df_analysis, cluster = "country")
-summary(twfe_d9)
+summary_d9 <- etable(twfe_d9)
+
+write_excel_csv(summary_d9, "twfe_d9_14d.csv")
+
