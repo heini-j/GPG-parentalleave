@@ -7,6 +7,7 @@ library(showtext)
 library(ggfixest)
 
 
+
 # Enable showtext
 showtext_auto()
 
@@ -82,9 +83,10 @@ events_median <-  summary(event_median_14w)
 
 # plotting the results
 
-ggiplot(event_median_14w) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p1 <- ggiplot(event_median_14w, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(i) Effect on median gender wage gap") +
   theme_minimal(base_family = "lato", base_size = 30)
 
 # Event study: 1st decile
@@ -94,9 +96,10 @@ events_d1 <-  summary(event_d1_14w)
 
 # plotting the results
 
-ggiplot(event_d1_14w) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p2 <- ggiplot(event_d1_14w, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(ii) Effect on gender wage gap, 1st decile") +
   theme_minimal(base_family = "lato", base_size = 30)
 
 
@@ -107,29 +110,37 @@ events_d9 <-  summary(event_d9_14w)
 
 # plotting the results
 
-ggiplot(event_d9_14w) +
-  xlab("Years from treatment") +
-  labs(title = "Event study without controls") +
+p3 <- ggiplot(event_d9_14w, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF') +
+  xlab("Years since policy change") +
+  ylab("Estimate") +
+  labs(title = "(iii) Effect on gender wage gap, 9th decile") +
   theme_minimal(base_family = "lato", base_size = 30)
+
+# Combining the plots
+
+event_plots_14w <- p1 + p2 + p3 +
+  plot_layout(ncol = 1, axes = "collect")
+
+ggsave("plots/event_plots_14w.png", event_plots_14d, width = 5, height = 8, dpi = 300)
 
 
 # TWFE with covariates --------------------------------------------------------
 
 # median
 
-twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                      data = df_analysis, cluster = "country")
 summary(twfe_median)
 
 # 1st decile
 
-twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                  data = df_analysis, cluster = "country")
 summary(twfe_d1)
 
 
 # 9th decile
 
-twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                  data = df_analysis, cluster = "country")
 summary(twfe_d9)
