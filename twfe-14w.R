@@ -22,14 +22,14 @@ df <- read_rds("data/combined.rds")
 # Filtering the data to only include the countries that are in the treatment and control groups
 
 df_analysis<- df |>
-  filter(country %in% c("Australia", "Canada", "South Korea", "Germany", "Japan", "United Kingdom",
+  filter(country %in% c("Belgium", "France", "South Korea", "Norway", "Japan", "Sweden",
                         "New Zealand", "United States", "Israel", "Slovak Republic", "Hungary"))
 
 
 # Creating a new variable to indicate treatment and control
 
 df_analysis <- df_analysis |>
-  mutate(treatment = ifelse(country %in% c("Australia", "Canada", "South Korea", "Germany", "Japan", "United Kingdom"), 1, 0))
+  mutate(treatment = ifelse(country %in% c("Belgium", "France", "South Korea", "Norway", "Japan", "Sweden"), 1, 0))
 
 df_analysis <- df_analysis |>
   mutate(treatment = as.factor(treatment))
@@ -38,12 +38,12 @@ df_analysis <- df_analysis |>
 
 df_analysis <- df_analysis |>
   mutate(treatment_year = case_when(
-    country == "Australia" ~ 2014,
-    country == "Canada" ~ 2020,
+    country == "Belgium" ~ 2004,
+    country == "France" ~ 2016,
     country == "South Korea" ~ 2003,
-    country == "Germany" ~ 2008,
+    country == "Norway" ~ 2015,
     country == "Japan" ~ 2012,
-    country == "United Kingdom" ~ 2003,
+    country == "Sweden" ~ 2017,
     treatment == 0 ~ 0))
 
 # creating variables for event time relative to treatment year and a dummy for post-treatment years
@@ -51,8 +51,7 @@ df_analysis <- df_analysis |>
 df_analysis <- df_analysis |>
   mutate(
     event_time = ifelse(treatment_year > 0, year - treatment_year, treatment_year),
-    treated_post = ifelse(year >= treatment_year & treatment_year > 0, 1, 0)
-  )
+    treated_post = ifelse(year >= treatment_year & treatment_year > 0, 1, 0))
 
 df_analysis <- df_analysis |>
   filter(event_time >= -7)
@@ -78,24 +77,24 @@ View(summary_stats)
 
 # Event study: median
 
-event_median_14d <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
-events_median <-  summary(event_median_14d)
+event_median_14w <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+events_median <-  summary(event_median_14w)
 
 # plotting the results
 
-ggiplot(event_median_14d) +
+ggiplot(event_median_14w) +
   xlab("Years from treatment") +
   labs(title = "Event study without controls") +
   theme_minimal(base_family = "lato", base_size = 30)
 
 # Event study: 1st decile
 
-event_d1_14d <- feols(gwg_d1 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
-events_d1 <-  summary(event_d1_14d)
+event_d1_14w <- feols(gwg_d1 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+events_d1 <-  summary(event_d1_14w)
 
 # plotting the results
 
-ggiplot(event_d1_14d) +
+ggiplot(event_d1_14w) +
   xlab("Years from treatment") +
   labs(title = "Event study without controls") +
   theme_minimal(base_family = "lato", base_size = 30)
@@ -103,12 +102,12 @@ ggiplot(event_d1_14d) +
 
 # Event study: 9th decile
 
-event_d9_14d <- feols(gwg_d9 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
-events_d9 <-  summary(event_d9_14d)
+event_d9_14w <- feols(gwg_d9 ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
+events_d9 <-  summary(event_d9_14w)
 
 # plotting the results
 
-ggiplot(event_d9_14d) +
+ggiplot(event_d9_14w) +
   xlab("Years from treatment") +
   labs(title = "Event study without controls") +
   theme_minimal(base_family = "lato", base_size = 30)
@@ -118,19 +117,19 @@ ggiplot(event_d9_14d) +
 
 # median
 
-twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year 
-      data = df_analysis, cluster = "country")
+twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+                     data = df_analysis, cluster = "country")
 summary(twfe_median)
 
 # 1st decile
 
 twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
-      data = df_analysis, cluster = "country")
+                 data = df_analysis, cluster = "country")
 summary(twfe_d1)
 
 
 # 9th decile
 
 twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
-      data = df_analysis, cluster = "country")
+                 data = df_analysis, cluster = "country")
 summary(twfe_d9)
