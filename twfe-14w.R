@@ -5,7 +5,7 @@ library(ggplot2)
 library(fixest)
 library(showtext)
 library(ggfixest)
-
+library(data.table)
 
 
 # Enable showtext
@@ -121,26 +121,47 @@ p3 <- ggiplot(event_d9_14w, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA92FF
 event_plots_14w <- p1 + p2 + p3 +
   plot_layout(ncol = 1, axes = "collect")
 
-ggsave("plots/event_plots_14w.png", event_plots_14d, width = 5, height = 8, dpi = 300)
+ggsave("plots/event_plots_14w.png", event_plots_14w, width = 5, height = 8, dpi = 300)
 
 
-# TWFE with covariates --------------------------------------------------------
+# TWFE with covariates, fixed for country or country + year --------------------------------------------------------
 
-# median
+# median - without fixing for year
 
-twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_median_c <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country,
+                       data = df_analysis, cluster = "country")
+
+
+# fixed for year
+
+twfe_median_y <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                      data = df_analysis, cluster = "country")
-summary(twfe_median)
+
 
 # 1st decile
 
-twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_d1_c <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
                  data = df_analysis, cluster = "country")
-summary(twfe_d1)
+
+
+twfe_d1_y <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+                 data = df_analysis, cluster = "country")
 
 
 # 9th decile
 
-twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_d9_c <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
                  data = df_analysis, cluster = "country")
-summary(twfe_d9)
+
+
+twfe_d9_y <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+                 data = df_analysis, cluster = "country")
+
+
+# combining for export
+
+combined_table <- etable(twfe_median_c, twfe_median_y, twfe_d1_c, twfe_d1_y, twfe_d9_c, twfe_d9_y,
+                         digits = 3)
+
+
+write_excel_csv(combined_table, "tables/results_14w.csv")
