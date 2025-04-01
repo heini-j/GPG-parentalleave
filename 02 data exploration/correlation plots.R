@@ -7,9 +7,11 @@ df <- read_rds("data/combined_clean.rds")
 
 # Country-wise plots ------------------------------------------------------
 
+# Plotting the median pay gap for each country to find which countries have enough data to be included in the analysis
+
 # Zero to >= 14 days ---------------------------------------------------------
 
-# AUstralia
+# Australia
 
 df |>
   filter(country == "Australia") |>
