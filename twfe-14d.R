@@ -44,7 +44,7 @@ df_analysis <- df_analysis |>
     country == "South Korea" ~ 2003,
     country == "Germany" ~ 2008,
     country == "Japan" ~ 2012,
-    country == "United Kingdom" ~ 2003,
+    country == "United Kingdom" ~ 2004,
     treatment == 0 ~ 0))
 
 # creating variables for event time relative to treatment year and a dummy for post-treatment years
@@ -55,40 +55,18 @@ df_analysis <- df_analysis |>
     treated_post = ifelse(year >= treatment_year & treatment_year > 0, 1, 0)
   )
 
-df_analysis <- df_analysis |>
-  filter(event_time >= -7)
-
-# Summary statistics ----------------------------------------------------------
-
-summary_stats <- df_analysis |> 
-  filter(year >= 1995, year < 2003) |>
-  group_by(treatment) |>
-  summarize(
-    mean_gdp = mean(gdp, na.rm = TRUE),
-    mean_gender_equality = mean(equality_index, na.rm = TRUE),
-    mean_gini = mean(gini, na.rm = TRUE),
-    mean_lf_participation = mean(lf_participation, na.rm = TRUE),
-    mean_wage_gap = mean(gwg_median, na.rm = TRUE),
-    mean_d1 = mean(gwg_d1, na.rm = TRUE),
-    mean_d9 = mean(gwg_d9, na.rm = TRUE)
-  )
-
-View(summary_stats)
 
 # Event studies ---------------------------------------
+
+# limiting the pre-treatment time to 7 years
+
+df_analysis <- df_analysis |>
+  filter(event_time >= -7)
 
 # Event study: median
 
 event_median_14d <- feols(gwg_median ~ i(event_time, ref = -1) | country + year, data = df_analysis, cluster = "country")
 
-event_median_14d_sa <- feols(gwg_median ~ sunab(treatment_year, year) | country + year, data = df_analysis, cluster = "country")
-summary(event_median_14d_sa)
-
-
-ggiplot(
-  list('TWFE' = est_twfe, 'Sun & Abraham (2020)' = est_sa20),
-  main = 'Staggered treatment', ref.line = -1, pt.join = TRUE
-)
 events_median <-  summary(event_median_14d)
 
 # plotting the results
@@ -98,11 +76,6 @@ p1 <- ggiplot(event_median_14d, geom_style = 'ribbon', pt.pch = NA, col = '#2BAA
   ylab("Estimate") +
   labs(title = "(i) Effect on median gender wage gap") +
   theme_minimal(base_family = "lato", base_size = 30)
-
-ggiplot(
-  list('TWFE' = event_median_14d, 'Sun & Abraham (2020)' = event_median_14d_sa),
-  main = 'Staggered treatment', ref.line = -1, pt.join = TRUE
-)
 
 # Event study: 1st decile
 
@@ -137,34 +110,35 @@ event_plots_14d <- p1 + p2 + p3 +
 ggsave("plots/event_plots_14d.png", event_plots_14d, width = 5, height = 8, dpi = 300)
 
 
-
 # TWFE with covariates --------------------------------------------------------
 
 # median
 
-twfe_median <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_median_c <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
+                     data = df_analysis, cluster = "country")
+
+twfe_median_y <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
       data = df_analysis, cluster = "country")
-summary_median <- esttable(twfe_median)
-
-write_excel_csv(summary_median, "twfe_median_14d.csv")
-
-
 
 # 1st decile
 
-twfe_d1 <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_d1_c <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
       data = df_analysis, cluster = "country")
-summary_d1 <- etable(twfe_d1)
 
-?etable
-
-write_excel_csv(summary_d1, "twfe_d1_14d.csv")
+twfe_d1_y <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+                 data = df_analysis, cluster = "country")
 
 # 9th decile
 
-twfe_d9 <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+twfe_d9_c <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
       data = df_analysis, cluster = "country")
-summary_d9 <- etable(twfe_d9)
 
-write_excel_csv(summary_d9, "twfe_d9_14d.csv")
+twfe_d9_y <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
+                 data = df_analysis, cluster = "country")
 
+# Exporting the results -------------------------------------------------------
+
+combined_table <- etable(twfe_median_c, twfe_median_y, twfe_d1_c, twfe_d1_y, twfe_d9_c, twfe_d9_y,
+                         digits = 3)
+
+write_excel_csv(combined_table, "tables/results_14d.csv")
