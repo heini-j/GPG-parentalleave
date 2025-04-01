@@ -112,26 +112,32 @@ ggsave("plots/event_plots_14d.png", event_plots_14d, width = 5, height = 8, dpi 
 
 # TWFE with covariates --------------------------------------------------------
 
-# median
+# median, fixed for country
 
 twfe_median_c <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
                      data = df_analysis, cluster = "country")
 
+# median, fixed for country and year
+
 twfe_median_y <- feols(gwg_median ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
       data = df_analysis, cluster = "country")
 
-# 1st decile
+# 1st decile, fixed for country
 
 twfe_d1_c <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
       data = df_analysis, cluster = "country")
 
+# 1st decile, fixed for country and year
+
 twfe_d1_y <- feols(gwg_d1 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                  data = df_analysis, cluster = "country")
 
-# 9th decile
+# 9th decile, fixed for country
 
 twfe_d9_c <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country, 
       data = df_analysis, cluster = "country")
+
+# 9th decile, fixed for country and year
 
 twfe_d9_y <- feols(gwg_d9 ~ treated_post + equality_index + gdp + gini + lf_participation | country + year, 
                  data = df_analysis, cluster = "country")
