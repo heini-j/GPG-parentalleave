@@ -60,16 +60,23 @@ ggsave("plots/gwg_oecd.png", p_combined, width = 10, height = 4, dpi = 300)
 
 # A line plot of the average maternity and paternity leaves over time
 df_summary <- df |> 
-  group_by(year, paternity) |> 
+  group_by(year) |> 
   summarise(
     maternity_avg = mean(maternity_total, na.rm = TRUE),
-    paternity_avg = mean(paternity_total, na.rm = TRUE)
+    paternity_avg = mean(paternity_total, na.rm = TRUE),
+    maternity_median = median(maternity_total, na.rm = TRUE),
+    paternity_median = median(paternity_total, na.rm = TRUE)
   )
 
+# Plotting mean and median leave lengths
+
 p_maternity <- ggplot(df_summary, aes(x = year)) +
-  geom_line(aes(y = maternity_avg, colour = "Mothers"), linewidth = 1.2) +
-  geom_line(aes(y = paternity_avg, colour = "Fathers"), linewidth = 1.2) +
-  scale_color_manual(values = c("Mothers" = "#D32934FF", "Fathers" = "#2BAA92FF")) +
+  geom_line(aes(y = maternity_avg, colour = "Mean, mothers"), linewidth = 1) +
+  geom_line(aes(y = paternity_avg, colour = "Mean, fathers"), linewidth = 1) +
+  geom_line(aes(y = maternity_median, colour = "Median, mothers"), linetype = "dotted", linewidth = 1) +
+  geom_line(aes(y = paternity_median, colour = "Median, fathers"), linetype = "dotted", linewidth = 1) +
+  scale_color_manual(values = c("Mean, mothers" = "#d3295e", "Median, mothers" = "#d3295e",
+                                "Mean, fathers" = "#2BAA92FF", "Median, fathers" = "#2BAA92FF")) +
   labs(
     title = NULL,
     x = NULL,
@@ -77,6 +84,7 @@ p_maternity <- ggplot(df_summary, aes(x = year)) +
     colour = NULL
   ) +
   theme_minimal(base_family = "lato", base_size = 30)
+
 
 ggsave("plots/leave_length.png", p_maternity, width = 6, height = 4, dpi = 300)
 
@@ -232,12 +240,6 @@ df_missing_year |>
        y = "Number of missing values") +
   theme_minimal()
 
-# a lot of missing values before 2010; basically gwg info from more than half of the countries missing
-
-# Countries that have least/longest period of no missing values:~
-# ~2000: Austria, Belgium, Canada, Czechia, Denmark, Germany, Hungary, Israel, New Zealand, Norway, Poland, Slovak, Sweden, Switzerland
-# Longer: Australia, Finland, Japan, UK, US
-# To be removed: Turkey, Luxembourg, Argentina, india, Croatia, Bulgaria, Romania
 
 # Removing the countries with a long period of missing values
 
