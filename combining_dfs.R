@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 library(tidyr)
 
-# Load the data
+# Load the dataframes
 
 df_parentalleave <- read_rds("data/parental_leave.rds")
 df_gwg <- read_rds("data/gwg_clean.rds")
